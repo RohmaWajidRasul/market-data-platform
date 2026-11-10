@@ -1,230 +1,180 @@
-KALSHI MARKET DATA PIPELINE & ANALYTICS DASHBOARD
-================================================
+# Kalshi Market Data Platform
 
-End-to-end data engineering and analytics system that ingests live Kalshi market data,
-stores it in Azure Blob Storage and Azure SQL Database, and visualizes insights through
-an interactive Dash dashboard.
+An end-to-end data engineering and analytics platform for collecting Kalshi market data, storing it in Azure, and exploring it through an interactive Plotly Dash dashboard.
 
-This project demonstrates cloud-native data ingestion, transformation, storage,
-and analytics using Python, Azure Functions, Azure SQL, and Plotly Dash.
+## Overview
 
-------------------------------------------------
-ARCHITECTURE OVERVIEW
-------------------------------------------------
+The platform:
 
+1. Fetches open markets from the Kalshi API.
+2. Enriches markets with event categories.
+3. Writes raw Parquet and JSON files to Azure Blob Storage.
+4. Persists cleaned market data in Azure SQL Database.
+5. Loads recent Parquet files into a Dash analytics dashboard.
+
+## Architecture
+
+```text
 Kalshi API
-   ↓
-Azure Function (Timer Trigger, Python)
-   ↓
-Azure Blob Storage
-   - Raw Parquet files
-   - Raw JSON files
-   - Master Parquet (historical)
-   ↓
-Azure SQL Database
-   - Structured relational storage
-   ↓
-Dash Analytics Dashboard
-   - Category insights
-   - Volume & open interest
-   - Time-series trends
-   - SQL query explorer
+    |
+    v
+Azure Function (timer trigger, every 30 minutes)
+    |
+    +--> Azure Blob Storage
+    |      +-- Raw Parquet files
+    |      +-- Raw JSON files
+    |      +-- Retained master data
+    |
+    +--> Azure SQL Database
+           |
+           v
+    Plotly Dash dashboard
+```
 
-------------------------------------------------
-FEATURES
-------------------------------------------------
+## Features
 
-• Automated market data ingestion every 5 minutes  
-• Parallel API enrichment for event categories  
-• Efficient Parquet-based storage  
-• Historical master dataset with deduplication  
-• Azure SQL relational persistence  
-• Interactive analytics dashboard  
-• Secure configuration using environment variables  
+- Automated market data ingestion with an Azure timer-triggered function
+- Parallel event-category enrichment
+- Parquet-based raw data storage
+- Historical data retention and deduplication
+- Azure SQL persistence
+- Interactive volume, open-interest, and trend visualizations
+- SQL query explorer
+- Environment-variable-based configuration
 
-------------------------------------------------
-REPOSITORY STRUCTURE
-------------------------------------------------
+## Repository structure
 
+```text
 .
-├── function_app.py        # Azure Function (Timer Trigger)
-├── dashboard.py           # Dash analytics application
-├── requirements.txt       # Python dependencies
-├── README.txt             # Project documentation
-├── local.settings.json    # Azure Functions local config (not committed)
-└── .env                   # Dashboard environment variables (not committed)
+├── app.py             # Plotly Dash analytics dashboard
+├── function_app.py    # Azure Function and ingestion pipeline
+├── host.json          # Azure Functions host configuration
+├── requirements.txt   # Python dependencies
+└── README.md          # Project documentation
+```
 
-------------------------------------------------
-TECH STACK
-------------------------------------------------
+## Technology stack
 
-• Python 3.9+
-• Azure Functions (Timer Trigger)
-• Azure Blob Storage
-• Azure SQL Database
-• Pandas / PyArrow
-• SQLAlchemy + pyodbc
-• Plotly Dash
-• Microsoft ODBC Driver 17 for SQL Server
+- Python 3.11
+- Azure Functions
+- Azure Blob Storage
+- Azure SQL Database
+- Pandas and PyArrow
+- SQLAlchemy and pyodbc
+- Plotly Dash
+- Microsoft ODBC Driver 17 for SQL Server
 
-------------------------------------------------
-AZURE SQL TABLE SCHEMA
-------------------------------------------------
+## Prerequisites
 
-CREATE TABLE KalshiMarketData (
-    can_close_early INT,
-    category NVARCHAR(255),
-    close_time DATETIME2,
-    created_time DATETIME2,
-    early_close_condition NVARCHAR(MAX),
-    event_ticker NVARCHAR(255),
-    expected_expiration_time DATETIME2,
-    expiration_time DATETIME2,
-    expiration_value NVARCHAR(255),
-    last_price FLOAT,
-    last_price_dollars NVARCHAR(50),
-    latest_expiration_time DATETIME2,
-    liquidity FLOAT,
-    liquidity_dollars NVARCHAR(50),
-    market_type NVARCHAR(50),
-    no_ask INT,
-    no_ask_dollars NVARCHAR(50),
-    no_bid INT,
-    no_bid_dollars NVARCHAR(50),
-    no_sub_title NVARCHAR(MAX),
-    notional_value FLOAT,
-    notional_value_dollars NVARCHAR(50),
-    open_interest INT,
-    open_time DATETIME2,
-    previous_price FLOAT,
-    previous_price_dollars NVARCHAR(50),
-    previous_yes_ask FLOAT,
-    previous_yes_ask_dollars NVARCHAR(50),
-    previous_yes_bid FLOAT,
-    previous_yes_bid_dollars NVARCHAR(50),
-    price_level_structure NVARCHAR(MAX),
-    price_ranges NVARCHAR(50),
-    response_price_units NVARCHAR(50),
-    result NVARCHAR(MAX),
-    risk_limit_cents INT,
-    rules_primary NVARCHAR(MAX),
-    rules_secondary NVARCHAR(MAX),
-    settlement_timer_seconds INT,
-    status NVARCHAR(50),
-    subtitle NVARCHAR(MAX),
-    tick_size FLOAT,
-    ticker NVARCHAR(255),
-    title NVARCHAR(MAX),
-    volume INT,
-    volume_24h INT,
-    yes_ask FLOAT,
-    yes_ask_dollars NVARCHAR(50),
-    yes_bid FLOAT,
-    yes_bid_dollars NVARCHAR(50),
-    yes_sub_title NVARCHAR(MAX),
-    strike_type NVARCHAR(50),
-    [custom_strike.Individual] NVARCHAR(MAX),
-    [custom_strike.Leader] NVARCHAR(MAX),
-    [custom_strike.Person] NVARCHAR(MAX),
-    [custom_strike.Company] NVARCHAR(MAX),
-    cap_strike NVARCHAR(50),
-    [custom_strike.Actor] NVARCHAR(MAX),
-    floor_strike NVARCHAR(50),
-    [custom_strike.Artist] NVARCHAR(MAX),
-    [custom_strike.Song] NVARCHAR(MAX),
-    [custom_strike.Country] NVARCHAR(MAX),
-    [custom_strike.Chart] NVARCHAR(MAX),
-    [custom_strike.Geography] NVARCHAR(MAX),
-    [custom_strike.Candidate] NVARCHAR(MAX),
-    [custom_strike.Party] NVARCHAR(MAX),
-    [custom_strike.House Winner] NVARCHAR(MAX),
-    [custom_strike.President Winner] NVARCHAR(MAX),
-    [custom_strike.Senate Winner] NVARCHAR(MAX),
-    [custom_strike.Pres candidate] NVARCHAR(MAX),
-    [custom_strike.State] NVARCHAR(MAX),
-    event_title NVARCHAR(MAX),
-    event_category NVARCHAR(255),
-    fetched_utc DATETIME2
-);
+- Python 3.11
+- Azure Functions Core Tools
+- Microsoft ODBC Driver 17 for SQL Server
+- Access to:
+  - The Kalshi API
+  - An Azure Blob Storage container
+  - An Azure SQL Database
 
-------------------------------------------------
-HOW TO RUN – AZURE FUNCTION (LOCAL)
-------------------------------------------------
+## Installation
 
-1. Install prerequisites:
-   • Python 3.9+
-   • Azure Functions Core Tools
-   • Microsoft ODBC Driver 17 for SQL Server
+Create and activate a virtual environment:
 
-2. Create and activate virtual environment:
-   python -m venv .venv
-   source .venv/bin/activate  (Windows: .venv\Scripts\activate)
+```bash
+python -m venv .venv
+```
 
-3. Install dependencies:
-   pip install -r requirements.txt
+Windows PowerShell:
 
-4. Configure local.settings.json:
-   {
-     "IsEncrypted": false,
-     "Values": {
-       "AzureWebJobsStorage": "...",
-       "FUNCTIONS_WORKER_RUNTIME": "python",
-       "BLOB_SAS_URL": "...",
-       "SQL_SERVER": "...",
-       "SQL_DATABASE": "...",
-       "SQL_USER": "...",
-       "SQL_PASSWORD": "...",
-       "SQL_TABLE": "KalshiMarketData"
-     }
-   }
+```powershell
+.\.venv\Scripts\Activate.ps1
+```
 
-5. Start Azure Function:
-   func start
+macOS/Linux:
 
-The function will automatically trigger every 5 minutes.
+```bash
+source .venv/bin/activate
+```
 
-------------------------------------------------
-HOW TO RUN – DASH DASHBOARD
-------------------------------------------------
+Install dependencies:
 
-1. Create `.env` file in project root:
-   BLOB_SAS_URL=...
-   SQL_SERVER=...
-   SQL_DATABASE=...
-   SQL_USER=...
-   SQL_PASSWORD=...
-   SQL_TABLE=KalshiMarketData
+```bash
+pip install -r requirements.txt
+```
 
-2. Run dashboard:
-   python dashboard.py
+## Configuration
 
-3. Open browser:
-   http://127.0.0.1:8050
+### Azure Function
 
-------------------------------------------------
-DASHBOARD FEATURES
-------------------------------------------------
+For local Azure Functions development, create `local.settings.json` in the project root. Do not commit this file.
 
-• Daily volume by category  
-• Open interest distribution  
-• Trades over time with moving average  
-• Monthly transaction analysis  
-• SQL Explorer for live database queries  
+```json
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "...",
+    "FUNCTIONS_WORKER_RUNTIME": "python",
+    "BLOB_SAS_URL": "...",
+    "SQL_SERVER": "...",
+    "SQL_DATABASE": "...",
+    "SQL_USER": "...",
+    "SQL_PASSWORD": "...",
+    "SQL_TABLE": "KalshiMarketData",
+    "BLOB_CONTAINER_NAME": "kalshdata",
+    "RAW_FOLDER": "raw/",
+    "JSON_FOLDER": "raw_json/",
+    "RETENTION_DAYS": "30"
+  }
+}
+```
 
-------------------------------------------------
-SECURITY NOTES
-------------------------------------------------
+`BLOB_SAS_URL` should be a container SAS URL. The function runs on startup and then every 30 minutes.
 
-• Secrets are loaded via environment variables
-• `.env` and `local.settings.json` should not be committed
-• SQL access uses encrypted connections
+### Dash dashboard
 
-------------------------------------------------
-AUTHOR
-------------------------------------------------
+Create a `.env` file in the project root. Do not commit this file.
+
+```dotenv
+BLOB_SAS_URL=...
+SQL_SERVER=...
+SQL_DATABASE=...
+SQL_USER=...
+SQL_PASSWORD=...
+SQL_TABLE=KalshiMarketData
+BLOB_CONTAINER_NAME=kalshdata
+RAW_FOLDER=raw/
+JSON_FOLDER=raw_json/
+MAX_FILES=50
+```
+
+## Running locally
+
+### Start the ingestion function
+
+From the project root:
+
+```bash
+func start
+```
+
+The timer function fetches open markets, writes the raw files to Blob Storage, and updates Azure SQL.
+
+### Start the dashboard
+
+```bash
+python app.py
+```
+
+Then open [http://127.0.0.1:8050](http://127.0.0.1:8050).
+
+The dashboard includes:
+
+- Daily volume by category
+- Open interest by category
+- Trades over time with a 30-day moving average
+- Monthly trades by category
+- A SQL Explorer for sample and custom queries
+
+Keep `.env` and `local.settings.json` out of version control. Store secrets in Azure Function application settings when deploying.
+
+## Author
 
 Rohma Wajid Rasul
-
-------------------------------------------------
-END OF FILE
-------------------------------------------------
